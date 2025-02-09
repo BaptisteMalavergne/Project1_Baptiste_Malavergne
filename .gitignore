@@ -1,0 +1,6 @@
+# Fichiers et dossiers de Visual Studio
+.vs/
+.vspscc
+.vssscc
+bin/
+obj/
