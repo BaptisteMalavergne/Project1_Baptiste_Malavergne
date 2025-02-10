@@ -1,4 +1,6 @@
-﻿namespace ProjectV2.Models.DTO
+﻿using ProjectV2.Models.Entities;
+
+namespace ProjectV2.Models.DTO
 {
     public class PatientDTO
     {
@@ -10,6 +12,8 @@
 
         // Si tu veux renvoyer les dossiers médicaux, tu peux les inclure avec une liste réduite d'attributs
         public List<MedicalRecordDTO> MedicalRecords { get; set; }
+        public List<Checkup> Checkups { get; set; } 
+        public List<Prescription> Prescriptions { get; set; } 
     }
 
 }

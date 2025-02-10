@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjectV2.Models;
 using ProjectV2.Models.DTO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using ProjectV2.Models.Entities;
 
 namespace ProjectV2.Controllers
 {
@@ -13,34 +14,44 @@ namespace ProjectV2.Controllers
     public class PatientsController : ControllerBase
     {
         private readonly MedicalSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public PatientsController(MedicalSystemContext context)
+        public PatientsController(MedicalSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Patients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<IEnumerable<PatientDTO>>> GetPatients()
         {
-            return await _context.Patients
+            var patients = await _context.Patients
                 .Include(p => p.MedicalRecords)
                 .Include(p => p.Checkups)
-                .Include(p => p.Prescriptions)
                 .ToListAsync();
+
+            var patientDtos = _mapper.Map<IEnumerable<PatientDTO>>(patients);
+            return Ok(patientDtos);
         }
 
         // GET: api/Patients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<PatientDTO>> GetPatient(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients
+                .Include(p => p.MedicalRecords)
+                .FirstOrDefaultAsync(p => p.PatientId == id);
+
             if (patient == null)
             {
                 return NotFound();
             }
-            return patient;
+
+            var patientDto = _mapper.Map<PatientDTO>(patient);
+            return Ok(patientDto);
         }
+
         [HttpPost]
         public async Task<ActionResult<Patient>> CreatePatient(PatientCreateDTO patientDto)
         {
@@ -65,21 +76,32 @@ namespace ProjectV2.Controllers
 
         // PUT: api/Patients/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePatient(int id, Patient patient)
+        public async Task<IActionResult> UpdatePatient(int id, PatientUpdateDTO patientDto)
         {
-            if (id != patient.PatientId) // Correction ici
+            if (id != patientDto.PatientId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(patient).State = EntityState.Modified;
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            // Update properties
+            patient.FirstName = patientDto.FirstName;
+            patient.LastName = patientDto.LastName;
+            patient.DateOfBirth = patientDto.DateOfBirth;
+            patient.Sex = patientDto.Sex;
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Patients.Any(e => e.PatientId == id)) // Correction ici
+                if (!_context.Patients.Any(e => e.PatientId == id))
                 {
                     return NotFound();
                 }
@@ -88,7 +110,9 @@ namespace ProjectV2.Controllers
                     throw;
                 }
             }
-            return NoContent();
+
+            var updatedPatientDto = _mapper.Map<PatientDTO>(patient);
+            return Ok(updatedPatientDto);
         }
 
         // DELETE: api/Patients/5
@@ -106,64 +130,3 @@ namespace ProjectV2.Controllers
         }
     }
 }
-
-
-
-/*
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProjectV2.Models;
-using ProjectV2.Models.DTO;
-
-namespace ProjectV2.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PatientsController : ControllerBase
-    {
-        private readonly MedicalSystemContext _context;
-        private readonly IMapper _mapper;
-
-        public PatientsController(MedicalSystemContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
-        // GET: api/Patients
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PatientReadDTO>>> GetPatients()
-        {
-            var patients = await _context.Patients
-                .Include(p => p.MedicalRecords) // Inclure les dossiers médicaux si nécessaire
-                .ToListAsync();
-
-            // Mappe les entités Patient vers les DTOs PatientReadDTO
-            var patientDtos = _mapper.Map<IEnumerable<PatientReadDTO>>(patients);
-
-            return Ok(patientDtos);
-        }
-
-        // GET: api/Patients/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PatientReadDTO>> GetPatient(int id)
-        {
-            var patient = await _context.Patients
-                .Include(p => p.MedicalRecords)
-                .FirstOrDefaultAsync(p => p.PatientId == id);
-
-            if (patient == null)
-            {
-                return NotFound();
-            }
-
-            var patientDto = _mapper.Map<PatientReadDTO>(patient);
-
-            return Ok(patientDto);
-        }
-
-        // POST, PUT, DELETE... restent inchangées
-    }
-}
-*/

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace ProjectV2.Models
+namespace ProjectV2.Models.Entities
 {
 
     public class MedicalRecord

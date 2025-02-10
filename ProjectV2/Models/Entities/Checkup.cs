@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace ProjectV2.Models
+namespace ProjectV2.Models.Entities
 {
 
     public class Checkup

@@ -2,9 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using ProjectV2.Models;
 using ProjectV2.Models.DTO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ProjectV2.Models.Entities;
+using AutoMapper;
 
 namespace ProjectV2.Controllers
 {
@@ -13,24 +12,29 @@ namespace ProjectV2.Controllers
     public class MedicalRecordsController : ControllerBase
     {
         private readonly MedicalSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public MedicalRecordsController(MedicalSystemContext context)
+        public MedicalRecordsController(MedicalSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/MedicalRecords
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedicalRecord>>> GetMedicalRecords()
+        public async Task<ActionResult<IEnumerable<MedicalRecordDTO>>> GetMedicalRecords()
         {
-            return await _context.MedicalRecords
-                .Include(m => m.Patient) // Inclure le patient dans la réponse
+            var medicalRecords = await _context.MedicalRecords
+                .Include(m => m.Patient)
                 .ToListAsync();
+
+            var medicalRecordDtos = _mapper.Map<IEnumerable<MedicalRecordDTO>>(medicalRecords);
+            return Ok(medicalRecordDtos);
         }
 
         // GET: api/MedicalRecords/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<MedicalRecord>> GetMedicalRecord(int id)
+        public async Task<ActionResult<MedicalRecordDTO>> GetMedicalRecord(int id)
         {
             var medicalRecord = await _context.MedicalRecords
                 .Include(m => m.Patient)
@@ -41,57 +45,59 @@ namespace ProjectV2.Controllers
                 return NotFound();
             }
 
-            return medicalRecord;
+            var medicalRecordDto = _mapper.Map<MedicalRecordDTO>(medicalRecord);
+            return Ok(medicalRecordDto);
         }
 
-
+        // POST: api/MedicalRecords
         [HttpPost]
-        public async Task<ActionResult<MedicalRecord>> CreateMedicalRecord(MedicalRecordCreateDTO medicalRecordDto)
+        public async Task<ActionResult<MedicalRecordDTO>> CreateMedicalRecord(MedicalRecordCreateDTO medicalRecordCreateDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.PatientId == medicalRecordCreateDto.PatientId);
 
-            // Trouver le patient par son ID
-            var patient = await _context.Patients.FindAsync(medicalRecordDto.PatientId);
             if (patient == null)
             {
-                return NotFound();  // Si le patient n'existe pas, retourne une erreur
+                return NotFound($"Patient with ID {medicalRecordCreateDto.PatientId} not found.");
             }
 
-            // Créer une instance de MedicalRecord en utilisant les données du DTO
             var medicalRecord = new MedicalRecord
             {
-                DiseaseName = medicalRecordDto.DiseaseName,
-                PatientId = medicalRecordDto.PatientId
-                // Le medicalRecordId sera généré automatiquement par la base de données
+                DiseaseName = medicalRecordCreateDto.DiseaseName,
+                PatientId = medicalRecordCreateDto.PatientId
             };
 
-            // Ajouter le dossier médical dans la base de données
             _context.MedicalRecords.Add(medicalRecord);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetMedicalRecord), new { id = medicalRecord.MedicalRecordId }, medicalRecord);
+            var medicalRecordDto = _mapper.Map<MedicalRecordDTO>(medicalRecord);
+            return CreatedAtAction(nameof(GetMedicalRecord), new { id = medicalRecord.MedicalRecordId }, medicalRecordDto);
         }
 
         // PUT: api/MedicalRecords/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMedicalRecord(int id, MedicalRecord medicalRecord)
+        public async Task<IActionResult> UpdateMedicalRecord(int id, MedicalRecordCreateDTO medicalRecordUpdateDto)
         {
-            if (id != medicalRecord.MedicalRecordId)
+            var medicalRecord = await _context.MedicalRecords.FindAsync(id);
+            if (medicalRecord == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(medicalRecord).State = EntityState.Modified;
+            if (medicalRecord.PatientId != medicalRecordUpdateDto.PatientId)
+            {
+                return BadRequest("PatientId in the URL and body do not match.");
+            }
+
+            medicalRecord.DiseaseName = medicalRecordUpdateDto.DiseaseName;
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.MedicalRecords.Any(e => e.MedicalRecordId == id))
+                if (!MedicalRecordExists(id))
                 {
                     return NotFound();
                 }
@@ -100,7 +106,9 @@ namespace ProjectV2.Controllers
                     throw;
                 }
             }
-            return NoContent();
+
+            var medicalRecordDto = _mapper.Map<MedicalRecordDTO>(medicalRecord);
+            return Ok(medicalRecordDto);
         }
 
         // DELETE: api/MedicalRecords/5
@@ -118,74 +126,10 @@ namespace ProjectV2.Controllers
 
             return NoContent();
         }
-    }
-}
-/*
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProjectV2.Models;
-using ProjectV2.Models.DTO;
 
-namespace ProjectV2.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MedicalRecordsController : ControllerBase
-    {
-        private readonly MedicalSystemContext _context;
-
-        public MedicalRecordsController(MedicalSystemContext context)
+        private bool MedicalRecordExists(int id)
         {
-            _context = context;
-        }
-
-        // POST: api/MedicalRecords
-        [HttpPost]
-        public async Task<ActionResult<MedicalRecordDTO>> CreateMedicalRecord(MedicalRecordCreateDTO medicalRecordCreateDto)
-        {
-            // Créer une instance de MedicalRecord à partir du DTO
-            var medicalRecord = new MedicalRecord
-            {
-                DiseaseName = medicalRecordCreateDto.DiseaseName,
-                PatientId = medicalRecordCreateDto.PatientId
-            };
-
-            _context.MedicalRecords.Add(medicalRecord);
-            await _context.SaveChangesAsync();
-
-            // Retourner le DTO de MedicalRecord
-            var medicalRecordDto = new MedicalRecordDTO
-            {
-                MedicalRecordId = medicalRecord.MedicalRecordId,
-                DiseaseName = medicalRecord.DiseaseName,
-                PatientId = medicalRecord.PatientId
-            };
-
-            return CreatedAtAction(nameof(GetMedicalRecord), new { id = medicalRecord.MedicalRecordId }, medicalRecordDto);
-        }
-
-        // Tu peux aussi ajouter un GET pour un MedicalRecord spécifique
-        [HttpGet("{id}")]
-        public async Task<ActionResult<MedicalRecordDTO>> GetMedicalRecord(int id)
-        {
-            var medicalRecord = await _context.MedicalRecords
-                .FirstOrDefaultAsync(m => m.MedicalRecordId == id);
-
-            if (medicalRecord == null)
-            {
-                return NotFound();
-            }
-
-            var medicalRecordDto = new MedicalRecordDTO
-            {
-                MedicalRecordId = medicalRecord.MedicalRecordId,
-                DiseaseName = medicalRecord.DiseaseName,
-                PatientId = medicalRecord.PatientId
-            };
-
-            return Ok(medicalRecordDto);
+            return _context.MedicalRecords.Any(e => e.MedicalRecordId == id);
         }
     }
 }
-
-*/

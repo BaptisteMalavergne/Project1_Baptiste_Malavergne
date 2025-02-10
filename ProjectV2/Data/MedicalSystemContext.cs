@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProjectV2.Models;
+using ProjectV2.Models.Entities;
 
 
 public class MedicalSystemContext : DbContext

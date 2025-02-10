@@ -1,109 +1,100 @@
-﻿/*using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿// CheckupController.cs
+using Microsoft.AspNetCore.Mvc;
 using ProjectV2.Models;
 using ProjectV2.Models.DTO;
-using System.Threading.Tasks;
-using System.Linq;
+using ProjectV2.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProjectV2.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CheckupsController : ControllerBase
+    public class CheckupController : ControllerBase
     {
         private readonly MedicalSystemContext _context;
 
-        public CheckupsController(MedicalSystemContext context)
+        public CheckupController(MedicalSystemContext context)
         {
             _context = context;
         }
 
-        // POST: api/Checkups
-        [HttpPost]
-        public async Task<ActionResult<CheckupDTO>> CreateCheckup(CheckupCreateDTO checkupDTO)
+        
+        // GET: api/Checkup
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CheckupDTO>>> GetCheckups()
         {
-            // Vérifie si le patient existe
-            var patient = await _context.Patients.FindAsync(checkupDTO.PatientId);
-            if (patient == null)
+            var checkups = await _context.Checkups
+                .Include(c => c.Patient)
+                .Include(c => c.Images)
+                .ToListAsync();
+
+            var checkupDTOs = checkups.Select(c => new CheckupDTO
             {
-                return NotFound("Patient not found");
+                CheckupId = c.CheckupId,
+                CheckupDate = c.CheckupDate,
+                ProcedureCode = c.ProcedureCode,
+                PatientId = c.PatientId,
+                PatientFullName = $"{c.Patient.FirstName} {c.Patient.LastName}",
+                ImageUrls = c.Images.Select(i => i.ImageUrl).ToList() // Assuming your Image model has a 'Url' property
+            }).ToList();
+
+            return Ok(checkupDTOs);
+        }
+        // POST: api/Checkup
+        [HttpPost]
+        public async Task<IActionResult> CreateCheckup([FromBody] CheckupCreateDTO checkupCreateDTO)
+        {
+            if (checkupCreateDTO == null)
+            {
+                return BadRequest();
             }
 
-            // Crée un nouveau checkup
             var checkup = new Checkup
             {
-                CheckupDate = checkupDTO.CheckupDate,
-                ProcedureCode = checkupDTO.ProcedureCode,
-                PatientId = checkupDTO.PatientId
+                CheckupDate = checkupCreateDTO.CheckupDate,
+                ProcedureCode = checkupCreateDTO.ProcedureCode,
+                PatientId = checkupCreateDTO.PatientId
             };
 
-            // Ajoute le checkup à la base de données
             _context.Checkups.Add(checkup);
             await _context.SaveChangesAsync();
 
-            // Retourne le CheckupDTO en réponse
-            var checkupDTOResponse = new CheckupDTO
-            {
-                CheckupId = checkup.CheckupId,
-                CheckupDate = checkup.CheckupDate,
-                ProcedureCode = checkup.ProcedureCode,
-                PatientId = checkup.PatientId,
-                // Si tu as des images, tu peux les ajouter ici aussi.
-                Images = checkup.Images?.Select(i => new ImageDTO { //remplir les propriétés de ImageDTO }).ToList()
-            };
-
-            return CreatedAtAction(nameof(GetCheckup), new { id = checkup.CheckupId }, checkupDTOResponse);
+            return CreatedAtAction("GetCheckup", new { id = checkup.CheckupId }, checkup);
         }
 
-        // GET: api/Checkups/{id}
+
+        // GET: api/Checkup/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<CheckupDTO>> GetCheckup(int id)
         {
             var checkup = await _context.Checkups
-                .Where(c => c.CheckupId == id)
-                .Select(c => new CheckupDTO
-                {
-                    CheckupId = c.CheckupId,
-                    CheckupDate = c.CheckupDate,
-                    ProcedureCode = c.ProcedureCode,
-                    PatientId = c.PatientId,
-                    // Si tu veux afficher les images
-                    Images = c.Images?.Select(i => new ImageDTO { // propriétés des images }).ToList()
-                })
-                .FirstOrDefaultAsync();
+                .Include(c => c.Patient)
+                .Include(c => c.Images)
+                .FirstOrDefaultAsync(c => c.CheckupId == id);
 
             if (checkup == null)
             {
                 return NotFound();
             }
 
-            return checkup;
+            var checkupDTO = new CheckupDTO
+            {
+                CheckupId = checkup.CheckupId,
+                CheckupDate = checkup.CheckupDate,
+                ProcedureCode = checkup.ProcedureCode,
+                PatientId = checkup.PatientId,
+                PatientFullName = $"{checkup.Patient.FirstName} {checkup.Patient.LastName}",
+                ImageUrls = checkup.Images.Select(i => i.ImageUrl).ToList()
+            };
+
+            return Ok(checkupDTO);
         }
 
-        // GET: api/Checkups
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CheckupDTO>>> GetCheckups()
-        {
-            var checkups = await _context.Checkups
-                .Select(c => new CheckupDTO
-                {
-                    CheckupId = c.CheckupId,
-                    CheckupDate = c.CheckupDate,
-                    ProcedureCode = c.ProcedureCode,
-                    PatientId = c.PatientId,
-                    // Si tu veux afficher les images
-                    Images = c.Images?.Select(i => new ImageDTO { // propriétés des images  }).ToList()
-                })
-                .ToListAsync();
-
-            return Ok(checkups);
-        }
-
-        // PUT: api/Checkups/{id}
+        // PUT: api/Checkup/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCheckup(int id, CheckupCreateDTO checkupDTO)
+        public async Task<IActionResult> UpdateCheckup(int id, [FromBody] CheckupCreateDTO checkupCreateDTO)
         {
-            if (id != checkupDTO.PatientId)
+            if (id != checkupCreateDTO.PatientId) // Change this condition based on your use case
             {
                 return BadRequest();
             }
@@ -114,16 +105,31 @@ namespace ProjectV2.Controllers
                 return NotFound();
             }
 
-            checkup.CheckupDate = checkupDTO.CheckupDate;
-            checkup.ProcedureCode = checkupDTO.ProcedureCode;
+            checkup.CheckupDate = checkupCreateDTO.CheckupDate;
+            checkup.ProcedureCode = checkupCreateDTO.ProcedureCode;
 
             _context.Entry(checkup).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CheckupExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return NoContent();
         }
 
-        // DELETE: api/Checkups/{id}
+        // DELETE: api/Checkup/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCheckup(int id)
         {
@@ -138,5 +144,10 @@ namespace ProjectV2.Controllers
 
             return NoContent();
         }
+
+        private bool CheckupExists(int id)
+        {
+            return _context.Checkups.Any(e => e.CheckupId == id);
+        }
     }
-}*/
+}

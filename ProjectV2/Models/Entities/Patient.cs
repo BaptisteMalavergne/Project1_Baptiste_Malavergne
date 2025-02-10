@@ -1,7 +1,6 @@
-﻿using ProjectV2.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProjectV2.Models
+namespace ProjectV2.Models.Entities
 {
 
 
@@ -16,8 +15,11 @@ namespace ProjectV2.Models
         [Required]
         public string LastName { get; set; }
 
-        public DateTime DateOfBirth { get; set; } // Ajouté
-        public string Sex { get; set; } // Ajouté
+        [Required]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        public string Sex { get; set; }
 
         // Relations
         public List<MedicalRecord> MedicalRecords { get; set; } = new();

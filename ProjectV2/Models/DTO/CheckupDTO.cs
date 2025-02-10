@@ -1,4 +1,5 @@
-﻿namespace ProjectV2.Models.DTO
+﻿// CheckupDTO.cs
+namespace ProjectV2.Models.DTO
 {
     public class CheckupDTO
     {
@@ -6,8 +7,13 @@
         public DateTime CheckupDate { get; set; }
         public string ProcedureCode { get; set; }
         public int PatientId { get; set; }
+        public string PatientFullName { get; set; } // Pour afficher le nom complet du patient
+        public ICollection<string> ImageUrls { get; set; } // Liste des URLs des images associées
 
-        // Optionnel : Ajouter les images liées au checkup si tu veux les afficher.
-        public ICollection<ImageDTO> Images { get; set; }  // Si tu as une classe ImageDTO
+        public CheckupDTO()
+        {
+            ImageUrls = new List<string>(); // Initialiser la collection d'images
+        }
     }
 }
+
