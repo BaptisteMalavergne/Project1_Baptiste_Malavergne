@@ -1,5 +1,4 @@
-﻿// CheckupDTO.cs
-namespace ProjectV2.Models.DTO
+﻿namespace ProjectV2.Models.DTO
 {
     public class CheckupDTO
     {
@@ -16,4 +15,3 @@ namespace ProjectV2.Models.DTO
         }
     }
 }
-

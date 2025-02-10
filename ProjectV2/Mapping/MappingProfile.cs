@@ -8,6 +8,7 @@ namespace ProjectV2.Mapping
     {
         public MappingProfile()
         {
+            // Patient mappings
             CreateMap<Patient, PatientDTO>()
                 .ForMember(dest => dest.MedicalRecords, opt => opt.MapFrom(src => src.MedicalRecords))
                 .ForMember(dest => dest.Checkups, opt => opt.MapFrom(src => src.Checkups))
@@ -15,8 +16,16 @@ namespace ProjectV2.Mapping
 
             CreateMap<PatientCreateDTO, Patient>();
 
+            // MedicalRecord mappings
             CreateMap<MedicalRecord, MedicalRecordDTO>();
             CreateMap<MedicalRecordCreateDTO, MedicalRecord>();
+
+            // Checkup mappings
+            CreateMap<Checkup, CheckupDTO>()
+                .ForMember(dest => dest.PatientFullName, opt => opt.MapFrom(src => $"{src.Patient.FirstName} {src.Patient.LastName}"))
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl)));
+
+            CreateMap<CheckupCreateDTO, Checkup>();
         }
     }
 }

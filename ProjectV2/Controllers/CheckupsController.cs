@@ -1,9 +1,8 @@
-﻿// CheckupController.cs
-using Microsoft.AspNetCore.Mvc;
-using ProjectV2.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProjectV2.Models.DTO;
 using ProjectV2.Models.Entities;
-using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace ProjectV2.Controllers
 {
@@ -12,13 +11,14 @@ namespace ProjectV2.Controllers
     public class CheckupController : ControllerBase
     {
         private readonly MedicalSystemContext _context;
+        private readonly IMapper _mapper;
 
-        public CheckupController(MedicalSystemContext context)
+        public CheckupController(MedicalSystemContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        
         // GET: api/Checkup
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CheckupDTO>>> GetCheckups()
@@ -28,18 +28,11 @@ namespace ProjectV2.Controllers
                 .Include(c => c.Images)
                 .ToListAsync();
 
-            var checkupDTOs = checkups.Select(c => new CheckupDTO
-            {
-                CheckupId = c.CheckupId,
-                CheckupDate = c.CheckupDate,
-                ProcedureCode = c.ProcedureCode,
-                PatientId = c.PatientId,
-                PatientFullName = $"{c.Patient.FirstName} {c.Patient.LastName}",
-                ImageUrls = c.Images.Select(i => i.ImageUrl).ToList() // Assuming your Image model has a 'Url' property
-            }).ToList();
+            var checkupDTOs = _mapper.Map<IEnumerable<CheckupDTO>>(checkups);
 
             return Ok(checkupDTOs);
         }
+
         // POST: api/Checkup
         [HttpPost]
         public async Task<IActionResult> CreateCheckup([FromBody] CheckupCreateDTO checkupCreateDTO)
@@ -49,19 +42,15 @@ namespace ProjectV2.Controllers
                 return BadRequest();
             }
 
-            var checkup = new Checkup
-            {
-                CheckupDate = checkupCreateDTO.CheckupDate,
-                ProcedureCode = checkupCreateDTO.ProcedureCode,
-                PatientId = checkupCreateDTO.PatientId
-            };
+            var checkup = _mapper.Map<Checkup>(checkupCreateDTO);
 
             _context.Checkups.Add(checkup);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCheckup", new { id = checkup.CheckupId }, checkup);
-        }
+            var checkupDTO = _mapper.Map<CheckupDTO>(checkup);
 
+            return CreatedAtAction(nameof(GetCheckup), new { id = checkup.CheckupId }, checkupDTO);
+        }
 
         // GET: api/Checkup/{id}
         [HttpGet("{id}")]
@@ -77,15 +66,7 @@ namespace ProjectV2.Controllers
                 return NotFound();
             }
 
-            var checkupDTO = new CheckupDTO
-            {
-                CheckupId = checkup.CheckupId,
-                CheckupDate = checkup.CheckupDate,
-                ProcedureCode = checkup.ProcedureCode,
-                PatientId = checkup.PatientId,
-                PatientFullName = $"{checkup.Patient.FirstName} {checkup.Patient.LastName}",
-                ImageUrls = checkup.Images.Select(i => i.ImageUrl).ToList()
-            };
+            var checkupDTO = _mapper.Map<CheckupDTO>(checkup);
 
             return Ok(checkupDTO);
         }
@@ -94,7 +75,7 @@ namespace ProjectV2.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCheckup(int id, [FromBody] CheckupCreateDTO checkupCreateDTO)
         {
-            if (id != checkupCreateDTO.PatientId) // Change this condition based on your use case
+            if (checkupCreateDTO == null)
             {
                 return BadRequest();
             }
@@ -105,8 +86,16 @@ namespace ProjectV2.Controllers
                 return NotFound();
             }
 
+            // Ensure the CheckupId in the URL matches the CheckupId in the request body
+            if (id != checkup.CheckupId)
+            {
+                return BadRequest("CheckupId in the URL and body do not match.");
+            }
+
+            // Update the properties
             checkup.CheckupDate = checkupCreateDTO.CheckupDate;
             checkup.ProcedureCode = checkupCreateDTO.ProcedureCode;
+            checkup.PatientId = checkupCreateDTO.PatientId;
 
             _context.Entry(checkup).State = EntityState.Modified;
 
@@ -126,7 +115,8 @@ namespace ProjectV2.Controllers
                 }
             }
 
-            return NoContent();
+            var checkupDTO = _mapper.Map<CheckupDTO>(checkup);
+            return Ok(checkupDTO);
         }
 
         // DELETE: api/Checkup/{id}
