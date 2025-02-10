@@ -26,6 +26,10 @@ namespace ProjectV2.Mapping
                 .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl)));
 
             CreateMap<CheckupCreateDTO, Checkup>();
+
+            // Prescription mappings
+            CreateMap<Prescription, PrescriptionDTO>();
+            CreateMap<PrescriptionCreateDTO, Prescription>();
         }
     }
 }

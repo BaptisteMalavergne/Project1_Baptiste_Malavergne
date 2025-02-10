@@ -15,13 +15,16 @@ namespace ProjectV2.Models.Entities
         [Required]
         public string ProcedureCode { get; set; }
 
-        // Relation avec Patient
+        // Relation with Patient
         [Required]
         public int PatientId { get; set; }
 
         [ForeignKey("PatientId")]
-        public Patient Patient { get; set; }  // Navigation property vers Patient
+        public Patient Patient { get; set; }  // Navigation property to Patient
 
         public ICollection<Image> Images { get; set; } = new List<Image>();
+
+        // Add this property
+        public ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
     }
 }

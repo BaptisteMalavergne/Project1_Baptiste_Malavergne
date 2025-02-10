@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjectV2.Models.Entities
 {
@@ -9,13 +9,19 @@ namespace ProjectV2.Models.Entities
         public int PrescriptionId { get; set; }
 
         [Required]
-        public string Medication { get; set; }
+        public string MedicationName { get; set; }
 
-        // Relation avec Patient
-        [ForeignKey("Patient")]
-        public int PatientId { get; set; }
-        public Patient Patient { get; set; }
+        [Required]
+        public string Dosage { get; set; }
+
+        [Required]
+        public string Instructions { get; set; }
+
+        // Relation with Checkup
+        [Required]
+        public int CheckupId { get; set; }
+
+        [ForeignKey("CheckupId")]
+        public Checkup Checkup { get; set; }
     }
-
-
 }

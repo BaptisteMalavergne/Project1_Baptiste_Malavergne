@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProjectV2.Models.Entities;
 
-
 public class MedicalSystemContext : DbContext
 {
     public MedicalSystemContext(DbContextOptions<MedicalSystemContext> options) : base(options) { }
@@ -35,11 +34,11 @@ public class MedicalSystemContext : DbContext
             .HasForeignKey(i => i.CheckupId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Patient → Prescriptions (1-N)
+        // Checkup → Prescriptions (1-N)
         modelBuilder.Entity<Prescription>()
-            .HasOne(pr => pr.Patient)
-            .WithMany(p => p.Prescriptions)
-            .HasForeignKey(pr => pr.PatientId)
+            .HasOne(pr => pr.Checkup)
+            .WithMany(c => c.Prescriptions)
+            .HasForeignKey(pr => pr.CheckupId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
