@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ProjectV2.Models.DTO;
 using ProjectV2.Models.Entities;
+using System.Linq;
 
 namespace ProjectV2.Mapping
 {
@@ -23,13 +24,18 @@ namespace ProjectV2.Mapping
             // Checkup mappings
             CreateMap<Checkup, CheckupDTO>()
                 .ForMember(dest => dest.PatientFullName, opt => opt.MapFrom(src => $"{src.Patient.FirstName} {src.Patient.LastName}"))
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl)));
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(i => i.ImageData)));
 
             CreateMap<CheckupCreateDTO, Checkup>();
 
             // Prescription mappings
             CreateMap<Prescription, PrescriptionDTO>();
             CreateMap<PrescriptionCreateDTO, Prescription>();
+
+            // Image mappings
+            CreateMap<Image, ImageDto>();
+            CreateMap<ImageUploadDto, Image>()
+                .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageFile));
         }
     }
 }

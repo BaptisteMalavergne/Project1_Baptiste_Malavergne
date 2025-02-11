@@ -10,7 +10,7 @@ namespace ProjectV2.Models.Entities
         public int ImageId { get; set; }
 
         [Required]
-        public string ImageUrl { get; set; }
+        public byte[] ImageData { get; set; }
 
         // Relation avec Checkup
         [ForeignKey("Checkup")]

@@ -1,0 +1,38 @@
+﻿@page
+@model ProjectV2.Pages.Patients.IndexModel
+@{
+    ViewData["Title"] = "Patients List";
+}
+
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+
+<h2>Patients</h2>
+<a asp-page="Create" class="btn btn-primary">Create New</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Date of Birth</th>
+            <th>Sex</th>2
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var patient in Model.Patients)
+        {
+                    <tr>
+                        <td>@patient.FirstName</td>
+                        <td>@patient.LastName</td>
+                        <td>@patient.DateOfBirth.ToShortDateString()</td>
+                        <td>@patient.Sex</td>
+                        <td>
+                            <a asp-page="Details" asp-route-id="@patient.PatientId" class="btn btn-info">Details</a>
+                            <a asp-page="Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">Edit</a>
+                            <a asp-page="Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>
+                        </td>
+                    </tr>
+        }
+    </tbody>
+</table>

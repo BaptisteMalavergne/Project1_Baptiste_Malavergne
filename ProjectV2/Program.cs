@@ -40,6 +40,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Medical API", Version = "v1" });
 });
 
+builder.Services.AddRazorPages();
+
+
 var app = builder.Build();
 /*
 // Cette ligne permet à l'application de servir des vues Razor
@@ -61,6 +64,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.MapControllers();
+app.UseRouting();
+app.UseAuthorization();
+app.MapRazorPages();
+
 
 app.Run();
 
