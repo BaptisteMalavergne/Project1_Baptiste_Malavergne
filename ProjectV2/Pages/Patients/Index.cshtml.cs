@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using ProjectV2.Models.DTO;
 using ProjectV2.Models.Entities;
 
-
 namespace ProjectV2.Pages.Patients
 {
     public class IndexModel : PageModel
