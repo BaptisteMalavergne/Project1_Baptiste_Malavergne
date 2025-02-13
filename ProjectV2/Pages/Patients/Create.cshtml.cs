@@ -19,6 +19,7 @@ namespace ProjectV2.Pages.Patients
 
         public IActionResult OnGet()
         {
+            Patient = new PatientCreateDTO();
             return Page();
         }
 
@@ -26,8 +27,15 @@ namespace ProjectV2.Pages.Patients
         {
             if (!ModelState.IsValid)
             {
+                // Log errors to debug
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
                 return Page();
             }
+
 
             var patient = new Patient
             {
