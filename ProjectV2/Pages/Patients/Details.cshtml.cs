@@ -20,8 +20,7 @@ namespace ProjectV2.Pages.Patients
         public async Task<IActionResult> OnGetAsync(int id)
         {
             var patient = await _context.Patients
-                .Include(p => p.MedicalRecords)
-                .Include(p => p.Checkups)
+                .Include(p => p.MedicalRecords) // Include related medical records
                 .FirstOrDefaultAsync(p => p.PatientId == id);
 
             if (patient == null)
@@ -36,15 +35,12 @@ namespace ProjectV2.Pages.Patients
                 LastName = patient.LastName,
                 DateOfBirth = patient.DateOfBirth,
                 Sex = patient.Sex,
-                MedicalRecords = patient.MedicalRecords.Select(mr => new MedicalRecordDTO
+                MedicalRecords = patient.MedicalRecords?.Select(mr => new MedicalRecordDTO
                 {
                     MedicalRecordId = mr.MedicalRecordId,
                     DiseaseName = mr.DiseaseName,
-                    /*StartDate = mr.StartDate,
-                    EndDate = mr.EndDate*/
-                }).ToList(),
-                Checkups = patient.Checkups,
-                Prescriptions = patient.Prescriptions
+                    PatientId = mr.PatientId
+                }).ToList()
             };
 
             return Page();

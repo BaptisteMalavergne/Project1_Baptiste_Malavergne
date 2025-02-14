@@ -3,9 +3,11 @@
 @{
     ViewData["Title"] = "Patients List";
 }
-
-<!-- Include Bootstrap CSS -->
+<!--
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<table class="table text-white">
+    -->
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
 
 <h2>Patients</h2>
 <!--<a asp-page="Create" class="btn btn-primary">Create New</a>--><a href="/Patients/Create" class="btn btn-primary">Create New</a>
@@ -30,9 +32,14 @@
                     <td>@patient.DateOfBirth.ToShortDateString()</td>
                     <td>@patient.Sex</td>
                     <td>
-                        <a asp-page="./Details" asp-route-id="@patient.PatientId" class="btn btn-info">Details</a>
+                        <!--<a asp-page="./Details" asp-route-id="@patient.PatientId" class="btn btn-info">Details</a>
                         <a asp-page="./Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">Edit</a>
-                        <a asp-page="./Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>
+                            <a asp-page="./Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>-->
+                                            <a href="/Patients/Details/@patient.PatientId" class="btn btn-info">Details</a>
+
+                                <a asp-page="./Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">Edit</a>
+                                <a asp-page="./Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>
+
                     </td>
                 </tr>
         }
