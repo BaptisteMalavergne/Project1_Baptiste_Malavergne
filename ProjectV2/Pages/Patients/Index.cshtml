@@ -35,10 +35,11 @@
                         <!--<a asp-page="./Details" asp-route-id="@patient.PatientId" class="btn btn-info">Details</a>
                         <a asp-page="./Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">Edit</a>
                             <a asp-page="./Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>-->
-                                            <a href="/Patients/Details/@patient.PatientId" class="btn btn-info">Details</a>
-
+                                <a href="/Patients/Details/@patient.PatientId" class="btn btn-info">Details</a>
                                 <a asp-page="./Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">Edit</a>
-                                <a asp-page="./Delete" asp-route-id="@patient.PatientId" class="btn btn-danger">Delete</a>
+                                    <a href="/Patients/Delete/@patient.PatientId" class="btn btn-danger" onclick="console.log('@patient.PatientId')">Delete</a>
+
+
 
                     </td>
                 </tr>

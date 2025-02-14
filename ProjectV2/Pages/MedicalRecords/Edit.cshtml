@@ -1,0 +1,22 @@
+﻿@page
+@model ProjectV2.Pages.MedicalRecords.EditModel
+@{
+    ViewData["Title"] = "Edit Medical Record";
+}
+
+<h2>Edit Medical Record</h2>
+
+<form method="post">
+    <input type="hidden" asp-for="MedicalRecord.MedicalRecordId" />
+
+    <div class="form-group">
+        <label asp-for="MedicalRecord.DiseaseName"></label>
+        <input asp-for="MedicalRecord.DiseaseName" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label asp-for="MedicalRecord.PatientId"></label>
+        <input asp-for="MedicalRecord.PatientId" class="form-control" readonly />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>

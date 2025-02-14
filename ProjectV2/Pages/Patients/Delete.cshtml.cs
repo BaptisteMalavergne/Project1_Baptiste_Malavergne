@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using ProjectV2.Models.DTO;
+using Microsoft.EntityFrameworkCore;
 using ProjectV2.Models.Entities;
+using System.Threading.Tasks;
 
 namespace ProjectV2.Pages.Patients
 {
@@ -15,42 +16,22 @@ namespace ProjectV2.Pages.Patients
         }
 
         [BindProperty]
-        public PatientDTO Patient { get; set; }
+        public Patient Patient { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            // Fetch the patient by ID
+            Patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.PatientId == id);
 
-            if (patient == null)
+            if (Patient == null)
             {
-                return NotFound();
+                return NotFound();  // Patient not found, return a 404 page
             }
-
-            Patient = new PatientDTO
-            {
-                PatientId = patient.PatientId,
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
-                DateOfBirth = patient.DateOfBirth,
-                Sex = patient.Sex
-            };
 
             return Page();
         }
-
-        public async Task<IActionResult> OnPostAsync(int id)
-        {
-            var patient = await _context.Patients.FindAsync(id);
-
-            if (patient == null)
-            {
-                return NotFound();
-            }
-
-            _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
-
-            return RedirectToPage("./Index");
-        }
     }
+
+
 }

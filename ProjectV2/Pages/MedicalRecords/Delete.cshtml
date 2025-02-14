@@ -1,0 +1,15 @@
+﻿@page
+@model ProjectV2.Pages.MedicalRecords.DeleteModel
+@{
+    ViewData["Title"] = "Delete Medical Record";
+}
+
+<h2>Delete Medical Record</h2>
+
+<p>Are you sure you want to delete this record?</p>
+
+<form method="post">
+    <input type="hidden" asp-for="MedicalRecord.MedicalRecordId" />
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="/MedicalRecords" class="btn btn-secondary">Cancel</a>
+</form>

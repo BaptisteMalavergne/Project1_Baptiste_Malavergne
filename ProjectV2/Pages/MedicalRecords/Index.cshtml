@@ -1,0 +1,32 @@
+﻿@page
+@model ProjectV2.Pages.MedicalRecords.IndexModel
+@{
+    ViewData["Title"] = "Medical Records";
+}
+
+<h2>Medical Records</h2>
+
+<a href="/MedicalRecords/Create" class="btn btn-primary">Add Medical Record</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Disease Name</th>
+            <th>Patient ID</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var record in Model.MedicalRecords)
+        {
+                <tr>
+                    <td>@record.DiseaseName</td>
+                    <td>@record.PatientId</td>
+                    <td>
+                        <a href="/MedicalRecords/Edit?id=@record.MedicalRecordId" class="btn btn-warning">Edit</a>
+                        <a href="/MedicalRecords/Delete?id=@record.MedicalRecordId" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+        }
+    </tbody>
+</table>
