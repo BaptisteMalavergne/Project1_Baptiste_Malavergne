@@ -1,28 +1,65 @@
-﻿﻿
-@page "{id:int}"
+﻿@page "{id:int}"
 @model ProjectV2.Pages.Patients.EditModel
 @{
     ViewData["Title"] = "Edit Patient";
 }
 
+<link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+
 <h2>Edit Patient</h2>
 
-<form method="post">
+<form id="patientForm">
     <div class="form-group">
-        <label asp-for="Patient.FirstName"></label>
-        <input asp-for="Patient.FirstName" class="form-control" />
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" class="form-control" value="@Model.Patient.FirstName" required />
     </div>
     <div class="form-group">
-        <label asp-for="Patient.LastName"></label>
-        <input asp-for="Patient.LastName" class="form-control" />
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" class="form-control" value="@Model.Patient.LastName" required />
     </div>
     <div class="form-group">
-        <label asp-for="Patient.DateOfBirth"></label>
-        <input asp-for="Patient.DateOfBirth" class="form-control" />
+        <label for="dateOfBirth">Date of Birth</label>
+        <input type="date" id="dateOfBirth" class="form-control" value="@Model.Patient.DateOfBirth.ToString("yyyy-MM-dd")" required />
     </div>
     <div class="form-group">
-        <label asp-for="Patient.Sex"></label>
-        <input asp-for="Patient.Sex" class="form-control" />
+        <label for="sex">Sex</label>
+        <input type="text" id="sex" class="form-control" value="@Model.Patient.Sex" required />
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
+
+<p id="message" style="color: red;"></p>
+
+<script>
+    document.querySelector("form").addEventListener("submit", async function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const patientData = {
+            patientId: @Model.Patient.PatientId,
+            firstName: document.getElementById("firstName").value,
+            lastName: document.getElementById("lastName").value,
+            dateOfBirth: new Date(document.getElementById("dateOfBirth").value).toISOString(),
+            sex: document.getElementById("sex").value
+        };
+
+        try {
+            const response = await fetch(`https://localhost:7040/api/Patients/${patientData.patientId}`, { // Use the correct API route
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(patientData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            alert("Patient updated successfully!");
+            window.location.href = '/Patients/Index'; // Redirect to the patient list page
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to update patient. Please try again.");
+        }
+    });
+</script>

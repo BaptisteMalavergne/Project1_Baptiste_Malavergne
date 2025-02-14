@@ -16,18 +16,19 @@ namespace ProjectV2.Pages.Patients
         }
 
         [BindProperty]
-        public PatientUpdateDTO Patient { get; set; }
+        public PatientDTO Patient { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
-            var patient = await _context.Patients.FindAsync(id);
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.PatientId == id);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
-            Patient = new PatientUpdateDTO
+            Patient = new PatientDTO
             {
                 PatientId = patient.PatientId,
                 FirstName = patient.FirstName,
@@ -46,35 +47,24 @@ namespace ProjectV2.Pages.Patients
                 return Page();
             }
 
-            var patient = await _context.Patients.FindAsync(Patient.PatientId);
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.PatientId == Patient.PatientId);
 
             if (patient == null)
             {
                 return NotFound();
             }
 
+            // Update only personal information, no checkups or prescriptions
             patient.FirstName = Patient.FirstName;
             patient.LastName = Patient.LastName;
             patient.DateOfBirth = Patient.DateOfBirth;
             patient.Sex = Patient.Sex;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Patients.Any(e => e.PatientId == Patient.PatientId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Patients.Update(patient);
+            await _context.SaveChangesAsync();
 
-            return RedirectToPage("./Index");
+            return RedirectToPage("/Patients/Index"); // Redirect to the patient list page after update
         }
     }
 }
